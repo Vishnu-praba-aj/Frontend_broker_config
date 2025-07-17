@@ -1,0 +1,437 @@
+<div class="container">
+  <!-- Heading and Description -->
+  <div class="header-section">
+    <h2>New Broker Configuration</h2>
+  </div>
+
+  <!-- Broker Selection -->
+  <div class="select-broker-row">
+    <mat-form-field>
+      <mat-label>
+        Select Broker <span class="required-asterisk">*</span>
+      </mat-label>
+      <mat-select
+        class="centered-select"
+        [(value)]="selectedBrokerCode"
+        panelClass="black-panel"
+        (selectionChange)="onBrokerChange($event.value)"
+      >
+        <mat-option
+          *ngFor="let broker of brokers"
+          [value]="broker['broker_code']"
+        >
+          {{ broker["broker_code"] }} - {{ broker["broker_name"] }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <!-- File Upload Section -->
+  <div class="input-row">
+    <!-- Document File -->
+    <div class="file-upload">
+      <label class="form-label"
+        > Document File <span class="required-asterisk">*</span></label
+      >
+      <div class="file-container">
+        <label class="file-btn mat-raised-button color-primary">
+          Choose
+          <input
+            type="file"
+            accept=".pdf,.txt,.xls,.xlsx"
+            (change)="onFileSelected($event)"
+            hidden
+          />
+        </label>
+        <input
+          type="text"
+          class="file-name"
+          [value]="selectedFileName || 'No file chosen'"
+          readonly
+        />
+      </div>
+      <small class="text-muted">PDF, TXT, Excel files supported</small>
+    </div>
+
+    <!-- Fields Config -->
+    <div class="file-upload">
+      <label class="form-label"
+        > Fields Configuration <span class="required-asterisk">*</span></label
+      >
+      <div class="file-container">
+        <label class="file-btn mat-raised-button color-accent">
+          Choose
+          <input
+            type="file"
+            accept=".txt"
+            (change)="onFieldsSelected($event)"
+            hidden
+          />
+        </label>
+        <input
+          type="text"
+          class="file-name"
+          [value]="selectedFieldsFileName || 'No file chosen'"
+          readonly
+        />
+      </div>
+      <small class="text-muted">TXT file with custom fields</small>
+    </div>
+  </div>
+
+  <!-- Chat-style Prompt Section -->
+  <div class="chat-prompt-box">
+    <div class="chat-message-bubble">
+      <p>
+        Please provide instructions on the fields you wish to extract from your
+        documents. <br />
+      </p>
+    </div>
+    <div class="chat-history-box">
+      <div
+        *ngFor="let msg of promptHistory"
+        class="chat-bubble"
+        [ngClass]="{
+          'user-message': msg.from === 'user',
+          'bot-message': msg.from === 'bot'
+        }"
+      >
+        {{ msg.text }}
+      </div>
+    </div>
+
+    <div class="chat-input-area">
+      <input
+        matInput
+        [(ngModel)]="prompt"
+        (keyup.enter)="onPromptSend()"
+        placeholder="Ask the chat assistant..."
+        class="chat-input"
+      />
+      <button mat-icon-button color="accent" (click)="onPromptSend()">
+        <mat-icon>send</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="action-buttons">
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="onAdd()"
+      [disabled]="!canAdd()"
+    >
+      Upload
+    </button>
+    <button
+      mat-button
+      color="reset"
+      (click)="onFormReset()"
+      [disabled]="!canReset()"
+    >
+      Reset
+    </button>
+  </div>
+
+  <div *ngIf="isUploading" class="loading-section">
+    <mat-icon class="loading-icon spin">autorenew</mat-icon>
+    <span class="loading-text">Processing files, please wait...</span>
+  </div>
+
+  <!-- Response Section -->
+  <div *ngIf="responseData.length && !isUploading">
+    <div class="response-header">
+      <h3>Extracted Fields</h3>
+    </div>
+    <div class="edit-buttons">
+      <ng-container *ngIf="!isEditing">
+        <button mat-raised-button color="primary" (click)="toggleEdit()">
+          Edit All
+        </button>
+      </ng-container>
+      <ng-container *ngIf="isEditing">
+        <button mat-raised-button color="primary" (click)="onSave()">
+          Save
+        </button>
+        <button mat-raised-button color="reset" (click)="onEditReset()">
+          Reset
+        </button>
+      </ng-container>
+    </div>
+
+    <!-- Field Cards (one per row, fields in columns) -->
+    <div class="card-list">
+      <mat-card
+        *ngFor="let field of responseData; let i = index"
+        class="expandable-card"
+        [ngClass]="{
+          'identifier-highlight':
+            field.document_label === selectedIdentifierField
+        }"
+      >
+        <mat-card-content>
+          <!-- Aligned Field Row (3 fields + Expand Button) -->
+          <div class="card-row field-grid">
+            <div class="field-item">
+              <label class="field-head">Custom Field:</label>
+              <ng-container *ngIf="!isEditing">{{
+                field.custom_field
+              }}</ng-container>
+              <ng-container *ngIf="isEditing">
+                <input matInput [(ngModel)]="field.custom_field" />
+              </ng-container>
+            </div>
+
+            <div class="field-item">
+              <label class="field-head">Document Label:</label>
+              <ng-container *ngIf="!isEditing">{{
+                field.document_label
+              }}</ng-container>
+              <ng-container *ngIf="isEditing">
+                <input matInput [(ngModel)]="field.document_label" />
+              </ng-container>
+            </div>
+
+            <div class="field-item">
+              <label class="field-head">Value:</label>
+              <ng-container *ngIf="!isEditing">{{ field.value }}</ng-container>
+              <ng-container *ngIf="isEditing">
+                <input matInput [(ngModel)]="field.value" />
+              </ng-container>
+            </div>
+
+            <!-- Metadata Expand Button -->
+            <div class="field-expand">
+              <button mat-icon-button (click)="toggleMetadata(i)">
+                <mat-icon>{{
+                  expandedCardIndex === i ? "expand_less" : "expand_more"
+                }}</mat-icon>
+              </button>
+            </div>
+          </div>
+
+          <div class="metadata-view" *ngIf="expandedCardIndex === i">
+            <h4>Metadata</h4>
+            <div class="metadata-grid">
+              <div
+                class="metadata-item"
+                *ngFor="
+                  let key of field.metadata | keyvalue : keyvalueCompare;
+                  trackBy: trackByKey
+                "
+              >
+                <label class="meta-label">{{ key.key }}:</label>
+                <ng-container *ngIf="!isEditing">
+                  <span class="meta-value">{{ key.value }}</span>
+                </ng-container>
+                <ng-container *ngIf="isEditing">
+                  <input
+                    matInput
+                    [ngModel]="getMetadataValue(field, key.key)"
+                    (ngModelChange)="setMetadataValue(field, key.key, $event)"
+                    [ngModelOptions]="{ standalone: true }"
+                  />
+                </ng-container>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <div *ngIf="responseData.length && !isUploading" class="unique-identifier-section">
+    <h4>Select Unique Identifier</h4>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Choose Identifier Field</mat-label>
+      <mat-select
+        [(value)]="selectedIdentifierField"
+        (selectionChange)="onIdentifierChange($event.value)"
+        [disabled]="identifierSet"
+        panelClass="black-panel"
+      >
+        <mat-option
+          *ngFor="let field of getFilteredDocumentLabels()"
+          [value]="field.document_label"
+        >
+          {{ field.document_label }}
+        </mat-option>
+        <mat-option value="__add_new__"
+          ><mat-icon>add</mat-icon> Add New Field</mat-option
+        >
+      </mat-select>
+    </mat-form-field>
+
+    <!-- Add New Identifier Field Inputs -->
+    <div
+      *ngIf="selectedIdentifierField === '__add_new__'"
+      class="new-identifier-form"
+    >
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Field Name</mat-label>
+        <input
+          matInput
+          [(ngModel)]="newIdentifierFieldName"
+          placeholder="Enter custom field name"
+          [disabled]="identifierSet"
+        />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Optional Message</mat-label>
+        <input
+          matInput
+          [(ngModel)]="optionalPhrase"
+          placeholder="Optional message (e.g., phrase to help extract)"
+          [disabled]="identifierSet"
+        />
+      </mat-form-field>
+
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="addCustomUniqueIdentifier()"
+        [disabled]="identifierSet"
+      >
+        Set
+      </button>
+    </div>
+
+    <!-- Validate Existing Identifier -->
+    <div
+      *ngIf="
+        selectedIdentifierField && selectedIdentifierField !== '__add_new__'
+      "
+    >
+      <button
+        mat-raised-button
+        color="accent"
+        (click)="validateExistingIdentifier()"
+        [disabled]="identifierSet"
+      >
+        Set
+      </button>
+    </div>
+  </div>
+  <!-- Unique Identifier Edit Section -->
+  <div *ngIf="uniqueIdentifierField && !isUploading" class="unique-id-editor">
+    <h3>Unique Identifier Field</h3>
+    <div class="edit-buttons">
+      <ng-container *ngIf="!isEditingIdentifier">
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="toggleIdentifierEdit()"
+        >
+          Edit
+        </button>
+      </ng-container>
+      <ng-container *ngIf="isEditingIdentifier">
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="saveUniqueIdentifierEdit()"
+        >
+          Save
+        </button>
+        <button mat-raised-button color="warn" (click)="cancelIdentifierEdit()">
+          Reset
+        </button>
+      </ng-container>
+    </div>
+    <mat-card class="expandable-card">
+      <mat-card-content>
+        <div class="card-header-row">
+          <span class="spacer"></span>
+        </div>
+
+        <div class="card-row field-grid">
+          <div class="field-item">
+            <label class="field-head">Custom Field:</label>
+            <ng-container *ngIf="!isEditingIdentifier">
+              {{ uniqueIdentifierField.custom_field }}
+            </ng-container>
+            <ng-container *ngIf="isEditingIdentifier">
+              <input
+                matInput
+                [(ngModel)]="uniqueIdentifierField.custom_field"
+              />
+            </ng-container>
+          </div>
+
+          <div class="field-item">
+            <label class="field-head">Document Label:</label>
+            <ng-container *ngIf="!isEditingIdentifier">
+              {{ uniqueIdentifierField.document_label }}
+            </ng-container>
+            <ng-container *ngIf="isEditingIdentifier">
+              <input
+                matInput
+                [(ngModel)]="uniqueIdentifierField.document_label"
+              />
+            </ng-container>
+          </div>
+
+          <div class="field-item">
+            <label class="field-head">Value:</label>
+            <ng-container *ngIf="!isEditingIdentifier">
+              {{ uniqueIdentifierField.value }}
+            </ng-container>
+            <ng-container *ngIf="isEditingIdentifier">
+              <input matInput [(ngModel)]="uniqueIdentifierField.value" />
+            </ng-container>
+          </div>
+          <button mat-icon-button (click)="toggleIdentifierMetadata()">
+            <mat-icon>{{
+              isIdentifierExpanded ? "expand_less" : "expand_more"
+            }}</mat-icon>
+          </button>
+        </div>
+
+        <!-- Metadata Expand Section -->
+        <div class="metadata-view" *ngIf="isIdentifierExpanded">
+          <h4>Metadata</h4>
+          <div class="metadata-grid">
+            <div
+              class="metadata-item"
+              *ngFor="
+                let key of uniqueIdentifierField.metadata
+                  | keyvalue : keyvalueCompare;
+                trackBy: trackByKey
+              "
+            >
+              <label class="meta-label">{{ key.key }}:</label>
+              <ng-container *ngIf="!isEditingIdentifier">
+                <span class="meta-value">{{ key.value }}</span>
+              </ng-container>
+              <ng-container *ngIf="isEditingIdentifier">
+                <input
+                  matInput
+                  [ngModel]="getMetadataValue(uniqueIdentifierField, key.key)"
+                  (ngModelChange)="
+                    setMetadataValue(uniqueIdentifierField, key.key, $event)
+                  "
+                  [ngModelOptions]="{ standalone: true }"
+                />
+              </ng-container>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+  
+
+  <!-- Submit Button -->
+  <div class="submit-section">
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="onSubmit()"
+      [disabled]="!identifierSet"
+    >
+      Submit
+    </button>
+  </div>
+</div>

@@ -1,0 +1,23 @@
+<mat-toolbar class="toolbar-custom ">
+  <div class="toolbar-center">
+    <span class="toolbar-title">Broker Configuration Panel</span>
+  </div>
+</mat-toolbar>
+
+<div class="main-container">
+  <mat-card class="content-card mat-elevation-z3">
+ <mat-tab-group class="fancy-tabs" [(selectedIndex)]="activeTabIndex">
+  <mat-tab label="🆕 New Broker Configuration">
+    <div class="tab-content">
+      <app-new-broker-config></app-new-broker-config>
+    </div>
+  </mat-tab>
+  <mat-tab label="♻️ Update Broker Configuration">
+    <div class="tab-content">
+      <app-update-broker-config></app-update-broker-config>
+    </div>
+  </mat-tab>
+</mat-tab-group>
+
+  </mat-card>
+</div>

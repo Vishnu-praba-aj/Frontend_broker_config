@@ -1,0 +1,90 @@
+/* === Citi-Inspired Global Dark Theme === */
+body {
+  --text-color: #f3eaea;
+  background-color: #121212;
+  font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+  margin: 0;
+}
+
+/* Dropdown panel background and text */
+::ng-deep .mat-select-panel {
+  background-color: #2a2d2e !important; /* Dark background */
+  color: #e0f7fa !important;           /* Light text */
+}
+
+/* Individual dropdown option text and hover style */
+::ng-deep .mat-option {
+  color: #e0f7fa !important;
+}
+
+::ng-deep .mat-option:hover,
+::ng-deep .mat-option.mat-active {
+  background-color: #1565c0 !important; /* Highlight color */
+  color: #ffffff !important;            /* White text on hover */
+}
+
+/* Selected value text when dropdown is closed */
+::ng-deep .mat-select-value {
+  color: #90caf9 !important; /* Selected text color */
+}
+
+/* Optional: dropdown arrow icon color */
+::ng-deep .mat-select-arrow {
+  color: #90caf9 !important;
+}
+
+.mat-mdc-form-field .mdc-line-ripple {
+  display: none !important;
+  height: 0 !important;
+  opacity: 0 !important;
+  border: none !important;
+}
+::ng-deep .mat-mdc-form-field-appearance-fill .mdc-notched-outline {
+  display: none !important;
+}
+.centered-snackbar {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  background-color: #333;
+  color: white;
+  padding: 16px 24px;
+  font-size: 16px;
+  border-radius: 8px;
+  z-index: 9999;
+}
+
+
+.snack-error {
+  background-color: #420400 !important;
+  color: white !important;
+}
+
+.snack-success {
+  background-color: #004102 !important;
+  color: #ffffff !important; 
+}
+
+.snack-success .mdc-button__label {
+  color: #ffffff !important; 
+}
+
+.snack-success .mdc-button:hover .mdc-button__label {
+  color: #101010 !important; 
+  background-color: transparent !important; 
+}
+
+.snack-error {
+  background-color: #410e00 !important;
+  color: #ffffff !important; 
+}
+
+.snack-error .mdc-button__label {
+  color: #ffffff !important; 
+}
+
+.snack-error .mdc-button:hover .mdc-button__label {
+  color: #101010 !important; 
+  background-color: transparent !important; 
+}

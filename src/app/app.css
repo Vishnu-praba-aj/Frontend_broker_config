@@ -1,0 +1,92 @@
+.toolbar-custom {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(90deg, #005c97, #a1b8bd, #00b4dcb6) !important;
+
+}
+
+.toolbar-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  font-family: 'Segoe UI', Roboto, sans-serif;
+  color: black;
+}
+
+.main-container {
+  padding: 2rem 4rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.content-card {
+  padding: 0rem,5rem;
+  border-radius: 16px;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.tab-content {
+  padding: 1.5rem 1rem;
+  color: var(--text-color);
+}
+
+.custom-tabs ::ng-deep .mat-tab-label {
+  color: var(--tab-label-color);
+}
+
+.custom-tabs ::ng-deep .mat-ink-bar {
+  background-color: var(--accent-color);
+}
+
+.fancy-tabs ::ng-deep .mat-tab-label {
+  font-size: 1.1rem;
+  font-weight: bold;
+  padding: 12px 24px;
+  color: #0018b3;
+}
+
+.fancy-tabs ::ng-deep .mat-tab-label-active {
+  color: #1a8dff;
+  background-color: #fff4e6;
+  border-radius: 12px 12px 0 0;
+}
+
+.fancy-tabs ::ng-deep .mat-ink-bar {
+  background-color: #1a8dff;
+  height: 4px;
+}
+
+.vertical-tabs-layout {
+  display: flex;
+}
+
+.tab-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #fff4e6;
+  border-right: 2px solid #1a98ff;
+  min-width: 180px;
+}
+
+.tab-sidebar button {
+  text-align: left;
+  color: #0068b3;
+  font-weight: 600;
+}
+
+.tab-sidebar button.active {
+  background-color: #47fcff;
+  color: white;
+  border-radius: 8px;
+}
+
+.tab-main-content {
+  padding: 1.5rem;
+  flex-grow: 1;
+}
