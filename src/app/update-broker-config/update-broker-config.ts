@@ -76,8 +76,8 @@ export class UpdateBrokerConfig implements OnInit {
   isIdentifierExpanded: boolean = false;
   isEditingIdentifier: boolean = false;
   originalUniqueIdentifierField: Field | null = null;
-  isUploading: boolean =false;
-  isvalidating:boolean =false;
+  isUploading: boolean = false;
+  isvalidating: boolean = false;
   fetchBrokers() {
     this.brokerService.getBrokers().subscribe({
       next: (data) => {
@@ -101,39 +101,34 @@ export class UpdateBrokerConfig implements OnInit {
     this.templateDataLoaded = false;
     this.showUploadSection = false;
     this.isIdentifierExpanded = false;
-    this.uniqueIdentifierField=null;
-    this.identifierSet=false;
-    this.templateCount =3;
+    this.uniqueIdentifierField = null;
+    this.identifierSet = false;
+    this.brokerService.getTemplateCount(code).subscribe({
+      next: (res: any) => {
+        this.templateCount = res.no_template;
         this.availableTemplates = Array.from(
-          { length: 3 },
+          { length: res.no_template },
           (_, i) => i + 1
         );
-    // this.brokerService.getTemplateCount(code).subscribe({
-    //   next: (res: any) => {
-    //     this.templateCount = res.no_template;
-    //     this.availableTemplates = Array.from(
-    //       { length: res.no_template },
-    //       (_, i) => i + 1
-    //     );
-    //   },
-    //   error: (err) => {
-    //     this.snackBar.open('Failed to load template count.', 'Close', {
-    //       panelClass: ['snack-error'],
-    //       horizontalPosition: 'center',
-    //       verticalPosition: 'top',
-    //     });
-    //     console.error('Template count fetch error:', err);
-    //   },
-    // });
+      },
+      error: (err) => {
+        this.snackBar.open('Failed to load template count.', 'Close', {
+          panelClass: ['snack-error'],
+          horizontalPosition: 'center',
+          verticalPosition: 'top',
+        });
+        console.error('Template count fetch error:', err);
+      },
+    });
   }
 
   onTemplateSelected(templateNumber: number) {
-    this.isUploading = true ;
+    this.isUploading = true;
     this.brokerService
       .getTemplateData(this.selectedBrokerCode, templateNumber)
       .subscribe({
         next: (res) => {
-          this.isUploading = false ;
+          this.isUploading = false;
           this.version = res.version;
           this.responseData = res.response.rows[0].fields;
           this.findUniqueIdentifierField();
@@ -142,7 +137,7 @@ export class UpdateBrokerConfig implements OnInit {
           this.showUploadSection = false;
         },
         error: (err) => {
-          this.isUploading = false ;
+          this.isUploading = false;
           this.snackBar.open('Failed to load template data.', 'Close', {
             panelClass: ['snack-error'],
             horizontalPosition: 'center',
@@ -154,25 +149,24 @@ export class UpdateBrokerConfig implements OnInit {
   }
 
   findUniqueIdentifierField() {
-  const possibleKeys = ['unique_identifier'];
+    const possibleKeys = ['unique_identifier'];
 
-  const matchIndex = this.responseData.findIndex(
-    (field) =>
-      (field.custom_field &&
-        possibleKeys.includes(field.custom_field.trim().toLowerCase())) ||
-      (field.document_label &&
-        possibleKeys.includes(field.document_label.trim().toLowerCase()))
-  );
+    const matchIndex = this.responseData.findIndex(
+      (field) =>
+        (field.custom_field &&
+          possibleKeys.includes(field.custom_field.trim().toLowerCase())) ||
+        (field.document_label &&
+          possibleKeys.includes(field.document_label.trim().toLowerCase()))
+    );
 
-  if (matchIndex !== -1) {
-    this.uniqueIdentifierField = this.responseData[matchIndex];
-    // Remove it from responseData
-    this.responseData.splice(matchIndex, 1);
-  } else {
-    this.uniqueIdentifierField = null;
+    if (matchIndex !== -1) {
+      this.uniqueIdentifierField = this.responseData[matchIndex];
+      // Remove it from responseData
+      this.responseData.splice(matchIndex, 1);
+    } else {
+      this.uniqueIdentifierField = null;
+    }
   }
-}
-
 
   saveUniqueIdentifierEdit() {
     if (!this.uniqueIdentifierField) return;
@@ -182,10 +176,12 @@ export class UpdateBrokerConfig implements OnInit {
       unique_id: this.uniqueIdentifierField.document_label,
     };
 
-    if (this.selectedTemplateNumber !== null && this.selectedTemplateNumber !== undefined) {
+    if (
+      this.selectedTemplateNumber !== null &&
+      this.selectedTemplateNumber !== undefined
+    ) {
       payload['broker_template_no'] = this.selectedTemplateNumber;
     }
-
 
     this.brokerService.validateUniqueIdentifier(payload).subscribe({
       next: (res: any) => {
@@ -292,7 +288,7 @@ export class UpdateBrokerConfig implements OnInit {
     this.isUploading = true;
     this.responseData = [];
     this.uniqueIdentifierField = null;
-    this.identifierSet=false;
+    this.identifierSet = false;
 
     const formData = new FormData();
     if (this.documentFile) formData.append('doc', this.documentFile);
@@ -304,7 +300,7 @@ export class UpdateBrokerConfig implements OnInit {
       next: (res) => {
         this.sessionId = res.session_id;
         this.responseData = res.response.rows[0].fields;
-        console.log(this.responseData)
+        console.log(this.responseData);
         this.expandedCardIndex = -1;
         this.isUploading = false;
       },
@@ -321,7 +317,7 @@ export class UpdateBrokerConfig implements OnInit {
 
   onPromptSend() {
     if (!this.prompt.trim()) return;
-    
+
     if (!this.sessionId) {
       this.initialPrompt = this.initialPrompt + ' ' + this.prompt;
       this.promptHistory.push({ from: 'user', text: this.prompt });
@@ -349,12 +345,11 @@ export class UpdateBrokerConfig implements OnInit {
     const formData = new FormData();
     formData.append('session_id', sessionId);
     formData.append('prompt', prompt);
-    this.isUploading = true ;
-    
+    this.isUploading = true;
 
     this.brokerService.continueChat(formData).subscribe({
       next: (response: any) => {
-        this.isUploading = false ;
+        this.isUploading = false;
         this.responseData = response.response.rows[0].fields;
         this.promptHistory.push({
           from: 'bot',
@@ -365,7 +360,7 @@ export class UpdateBrokerConfig implements OnInit {
         this.snackBar.open('Failed to update via chat.', 'Close', {
           panelClass: ['snack-error'],
           horizontalPosition: 'center',
-           verticalPosition: 'top',
+          verticalPosition: 'top',
         });
         console.error('Chat update error:', err);
       },
@@ -390,216 +385,212 @@ export class UpdateBrokerConfig implements OnInit {
   }
 
   addCustomUniqueIdentifier() {
-  if (!this.newIdentifierFieldName.trim()) {
-    alert('Please enter a field name.');
-    return;
-  }
+    if (!this.newIdentifierFieldName.trim()) {
+      alert('Please enter a field name.');
+      return;
+    }
 
-  const payload = {
-    session_id: this.sessionId,
-    broker_code: this.selectedBrokerCode,
-    unique_id: this.newIdentifierFieldName,
-    message: this.optionalPhrase || '',
-    broker_template_no: this.selectedTemplateNumber,
-  };
-  this.isvalidating=true;
-  this.brokerService.setUniqueIdentifier(payload).subscribe({
-    next: (res: any) => {
-      const allFields: Field[] = res.response.rows[0].fields;
+    const payload = {
+      session_id: this.sessionId,
+      broker_code: this.selectedBrokerCode,
+      unique_id: this.newIdentifierFieldName,
+      message: this.optionalPhrase || '',
+      broker_template_no: this.selectedTemplateNumber,
+    };
+    this.isvalidating = true;
+    this.brokerService.setUniqueIdentifier(payload).subscribe({
+      next: (res: any) => {
+        const allFields: Field[] = res.response.rows[0].fields;
 
-      const identifierField = allFields.find(
-        (f) =>
-          f.document_label?.trim().toLowerCase() === this.newIdentifierFieldName.trim().toLowerCase() ||
-          f.custom_field?.trim().toLowerCase() === this.newIdentifierFieldName.trim().toLowerCase()
-      );
-
-      if (identifierField) {
-        this.uniqueIdentifierField = {
-          ...identifierField,
-          custom_field: 'unique_identifier',
-        };
-      }
-
-      this.responseData = allFields.filter(
-        (f) =>
-          f !== identifierField
-      );
-
-      this.identifierSet = true;
-      this.isvalidating=false;
-      this.snackBar.open('Identifier added successfully!', 'Close', {
-        panelClass: ['snack-success'],
-        horizontalPosition: 'center',
-        verticalPosition: 'top',
-      });
-    },
-
-    error: (err) => {
-      this.isvalidating=false;
-      if (err.status === 409) {
-        this.snackBar.open(
-          'Identifier already exists. Please choose another field.',
-          'Close',
-          {
-            panelClass: ['snack-error'],
-            horizontalPosition: 'center',
-            verticalPosition: 'top',
-          }
-        );
-      } else {
-        this.snackBar.open('Validation failed. Please try again.', 'Close', {
-          panelClass: ['snack-error'],
-          horizontalPosition: 'center',
-          verticalPosition: 'top',
-        });
-      }
-    },
-  });
-}
-
-
-  validateExistingIdentifier() {
-  const payload = {
-    broker_code: this.selectedBrokerCode,
-    unique_id: this.selectedIdentifierField,
-    broker_template_no: this.selectedTemplateNumber,
-  };
-  this.isvalidating=true;
-  this.brokerService.validateUniqueIdentifier(payload).subscribe({
-    next: (res: any) => {
-      if (res.can_proceed) {
-        // Find the field in responseData that matches the selectedIdentifierField
-        const identifierField = this.responseData.find(
-          (field) =>
-            field.document_label?.trim().toLowerCase() === this.selectedIdentifierField.trim().toLowerCase() ||
-            field.custom_field?.trim().toLowerCase() === this.selectedIdentifierField.trim().toLowerCase()
+        const identifierField = allFields.find(
+          (f) =>
+            f.document_label?.trim().toLowerCase() ===
+              this.newIdentifierFieldName.trim().toLowerCase() ||
+            f.custom_field?.trim().toLowerCase() ===
+              this.newIdentifierFieldName.trim().toLowerCase()
         );
 
         if (identifierField) {
-          
           this.uniqueIdentifierField = {
             ...identifierField,
             custom_field: 'unique_identifier',
           };
-
-          
-          this.responseData = this.responseData.filter(f => f !== identifierField);
         }
 
+        this.responseData = allFields.filter((f) => f !== identifierField);
+
         this.identifierSet = true;
-        this.isvalidating=false;
+        this.isvalidating = false;
         this.snackBar.open('Identifier added successfully!', 'Close', {
           panelClass: ['snack-success'],
           horizontalPosition: 'center',
           verticalPosition: 'top',
         });
-      } else {
-        this.isvalidating=false;
-        this.snackBar.open("Can't use this as unique identifier.", 'Close', {
-          panelClass: ['snack-error'],
-          horizontalPosition: 'center',
-          verticalPosition: 'top',
-        });
-      }
-    },
+      },
 
-    error: (err) => {
-      this.isvalidating=false;
-      if (err.status === 409) {
-        this.snackBar.open(
-          'Identifier already exists. Please choose another field.',
-          'Close',
-          {
+      error: (err) => {
+        this.isvalidating = false;
+        if (err.status === 409) {
+          this.snackBar.open(
+            'Identifier already exists. Please choose another field.',
+            'Close',
+            {
+              panelClass: ['snack-error'],
+              horizontalPosition: 'center',
+              verticalPosition: 'top',
+            }
+          );
+        } else {
+          this.snackBar.open('Validation failed. Please try again.', 'Close', {
             panelClass: ['snack-error'],
             horizontalPosition: 'center',
             verticalPosition: 'top',
-          }
-        );
-      } else {
-        this.snackBar.open('Validation failed. Please try again.', 'Close', {
-          panelClass: ['snack-error'],
-          horizontalPosition: 'center',
-          verticalPosition: 'top',
-        });
-      }
-    },
-  });
-}
-
-
-  onSubmit() {
-  const finalResponseData = [...this.responseData];
-
-  if (this.uniqueIdentifierField) {
-    finalResponseData.push({
-      ...this.uniqueIdentifierField,
-      custom_field: 'unique_identifier', 
+          });
+        }
+      },
     });
   }
 
-  const payload = {
-    broker_code: this.selectedBrokerCode,
-    version: this.version,
-    broker_template_no: this.selectedTemplateNumber,
-    response: {
-      rows: [
-        {
-          index: 0,
-          fields: finalResponseData.map((field) => ({
-            custom_field: field.custom_field,
-            document_label: field.document_label,
-            value: field.value,
-            metadata: restoreMetadataKeys(field.metadata),
-          })),
-        },
-      ],
-    },
-  };
+  validateExistingIdentifier() {
+    const payload = {
+      broker_code: this.selectedBrokerCode,
+      unique_id: this.selectedIdentifierField,
+      broker_template_no: this.selectedTemplateNumber,
+    };
+    this.isvalidating = true;
+    this.brokerService.validateUniqueIdentifier(payload).subscribe({
+      next: (res: any) => {
+        if (res.can_proceed) {
+          // Find the field in responseData that matches the selectedIdentifierField
+          const identifierField = this.responseData.find(
+            (field) =>
+              field.document_label?.trim().toLowerCase() ===
+                this.selectedIdentifierField.trim().toLowerCase() ||
+              field.custom_field?.trim().toLowerCase() ===
+                this.selectedIdentifierField.trim().toLowerCase()
+          );
 
-  console.log('Submitting payload:', payload);
+          if (identifierField) {
+            this.uniqueIdentifierField = {
+              ...identifierField,
+              custom_field: 'unique_identifier',
+            };
 
-  this.brokerService.submitFinalConfiguration(payload).subscribe({
-    next: (res) => {
-      const message = res?.message || 'Configuration submitted successfully!';
-      this.snackBar.open(message, 'Close', {
-        panelClass: ['snack-success'],
-        horizontalPosition: 'center',
-        verticalPosition: 'top',
-      });
-    },
-    error: (err) => {
-      if (err.status === 404) {
-        this.snackBar.open(
-          'Identifier not found in request. Please choose identifier.',
-          'Close',
-          {
+            this.responseData = this.responseData.filter(
+              (f) => f !== identifierField
+            );
+          }
+
+          this.identifierSet = true;
+          this.isvalidating = false;
+          this.snackBar.open('Identifier added successfully!', 'Close', {
+            panelClass: ['snack-success'],
+            horizontalPosition: 'center',
+            verticalPosition: 'top',
+          });
+        } else {
+          this.isvalidating = false;
+          this.snackBar.open("Can't use this as unique identifier.", 'Close', {
             panelClass: ['snack-error'],
             horizontalPosition: 'center',
             verticalPosition: 'top',
-          }
-        );
-      } else {
-        console.error('Submission failed:', err);
-        this.snackBar.open('Failed to submit configuration.', 'Close', {
-          panelClass: ['snack-error'],
+          });
+        }
+      },
+
+      error: (err) => {
+        this.isvalidating = false;
+        if (err.status === 409) {
+          this.snackBar.open(
+            'Identifier already exists. Please choose another field.',
+            'Close',
+            {
+              panelClass: ['snack-error'],
+              horizontalPosition: 'center',
+              verticalPosition: 'top',
+            }
+          );
+        } else {
+          this.snackBar.open('Validation failed. Please try again.', 'Close', {
+            panelClass: ['snack-error'],
+            horizontalPosition: 'center',
+            verticalPosition: 'top',
+          });
+        }
+      },
+    });
+  }
+
+  onSubmit() {
+    const finalResponseData = [...this.responseData];
+
+    if (this.uniqueIdentifierField) {
+      finalResponseData.push({
+        ...this.uniqueIdentifierField,
+        custom_field: 'unique_identifier',
+      });
+    }
+
+    const payload = {
+      broker_code: this.selectedBrokerCode,
+      version: this.version,
+      broker_template_no: this.selectedTemplateNumber,
+      response: {
+        rows: [
+          {
+            index: 0,
+            fields: finalResponseData.map((field) => ({
+              custom_field: field.custom_field,
+              document_label: field.document_label,
+              value: field.value,
+              metadata: restoreMetadataKeys(field.metadata),
+            })),
+          },
+        ],
+      },
+    };
+
+    console.log('Submitting payload:', payload);
+
+    this.brokerService.submitFinalConfiguration(payload).subscribe({
+      next: (res) => {
+        const message = res?.message || 'Configuration submitted successfully!';
+        this.snackBar.open(message, 'Close', {
+          panelClass: ['snack-success'],
           horizontalPosition: 'center',
           verticalPosition: 'top',
         });
-      }
-    },
-  });
-}
-
+      },
+      error: (err) => {
+        if (err.status === 404) {
+          this.snackBar.open(
+            'Identifier not found in request. Please choose identifier.',
+            'Close',
+            {
+              panelClass: ['snack-error'],
+              horizontalPosition: 'center',
+              verticalPosition: 'top',
+            }
+          );
+        } else {
+          console.error('Submission failed:', err);
+          this.snackBar.open('Failed to submit configuration.', 'Close', {
+            panelClass: ['snack-error'],
+            horizontalPosition: 'center',
+            verticalPosition: 'top',
+          });
+        }
+      },
+    });
+  }
 
   toggleEdit() {
-    this.backupFields = JSON.parse(JSON.stringify(this.responseData)); 
+    this.backupFields = JSON.parse(JSON.stringify(this.responseData));
     this.isEditing = true;
   }
 
   onSave() {
-    
     this.isEditing = false;
-
   }
 
   onFormReset() {
@@ -618,12 +609,11 @@ export class UpdateBrokerConfig implements OnInit {
     this.expandedCardIndex = -1;
   }
 
-  
   onEditReset() {
-     this.isEditing = false;
-     this.responseData = JSON.parse(JSON.stringify(this.backupFields));
+    this.isEditing = false;
+    this.responseData = JSON.parse(JSON.stringify(this.backupFields));
   }
-  
+
   toggleIdentifierMetadata() {
     this.isIdentifierExpanded = !this.isIdentifierExpanded;
   }
