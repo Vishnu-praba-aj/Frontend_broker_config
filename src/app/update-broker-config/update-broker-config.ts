@@ -77,6 +77,7 @@ export class UpdateBrokerConfig implements OnInit {
   isEditingIdentifier: boolean = false;
   originalUniqueIdentifierField: Field | null = null;
   isUploading: boolean =false;
+  isvalidating:boolean =false;
   fetchBrokers() {
     this.brokerService.getBrokers().subscribe({
       next: (data) => {
@@ -102,23 +103,28 @@ export class UpdateBrokerConfig implements OnInit {
     this.isIdentifierExpanded = false;
     this.uniqueIdentifierField=null;
     this.identifierSet=false;
-    this.brokerService.getTemplateCount(code).subscribe({
-      next: (res: any) => {
-        this.templateCount = res.no_template;
+    this.templateCount =3;
         this.availableTemplates = Array.from(
-          { length: res.no_template },
+          { length: 3 },
           (_, i) => i + 1
         );
-      },
-      error: (err) => {
-        this.snackBar.open('Failed to load template count.', 'Close', {
-          panelClass: ['snack-error'],
-          horizontalPosition: 'center',
-          verticalPosition: 'top',
-        });
-        console.error('Template count fetch error:', err);
-      },
-    });
+    // this.brokerService.getTemplateCount(code).subscribe({
+    //   next: (res: any) => {
+    //     this.templateCount = res.no_template;
+    //     this.availableTemplates = Array.from(
+    //       { length: res.no_template },
+    //       (_, i) => i + 1
+    //     );
+    //   },
+    //   error: (err) => {
+    //     this.snackBar.open('Failed to load template count.', 'Close', {
+    //       panelClass: ['snack-error'],
+    //       horizontalPosition: 'center',
+    //       verticalPosition: 'top',
+    //     });
+    //     console.error('Template count fetch error:', err);
+    //   },
+    // });
   }
 
   onTemplateSelected(templateNumber: number) {
@@ -315,7 +321,7 @@ export class UpdateBrokerConfig implements OnInit {
 
   onPromptSend() {
     if (!this.prompt.trim()) return;
-
+    
     if (!this.sessionId) {
       this.initialPrompt = this.initialPrompt + ' ' + this.prompt;
       this.promptHistory.push({ from: 'user', text: this.prompt });
@@ -324,6 +330,7 @@ export class UpdateBrokerConfig implements OnInit {
         text: 'Now click Upload to proceed.',
       });
     } else {
+      this.promptHistory.push({ from: 'user', text: this.prompt });
       this.promptHistory.push({
         from: 'bot',
         text: 'Processing...',
@@ -343,7 +350,7 @@ export class UpdateBrokerConfig implements OnInit {
     formData.append('session_id', sessionId);
     formData.append('prompt', prompt);
     this.isUploading = true ;
-    this.promptHistory.push({ from: 'user', text: this.prompt });
+    
 
     this.brokerService.continueChat(formData).subscribe({
       next: (response: any) => {
@@ -395,7 +402,7 @@ export class UpdateBrokerConfig implements OnInit {
     message: this.optionalPhrase || '',
     broker_template_no: this.selectedTemplateNumber,
   };
-
+  this.isvalidating=true;
   this.brokerService.setUniqueIdentifier(payload).subscribe({
     next: (res: any) => {
       const allFields: Field[] = res.response.rows[0].fields;
@@ -419,6 +426,7 @@ export class UpdateBrokerConfig implements OnInit {
       );
 
       this.identifierSet = true;
+      this.isvalidating=false;
       this.snackBar.open('Identifier added successfully!', 'Close', {
         panelClass: ['snack-success'],
         horizontalPosition: 'center',
@@ -427,6 +435,7 @@ export class UpdateBrokerConfig implements OnInit {
     },
 
     error: (err) => {
+      this.isvalidating=false;
       if (err.status === 409) {
         this.snackBar.open(
           'Identifier already exists. Please choose another field.',
@@ -455,7 +464,7 @@ export class UpdateBrokerConfig implements OnInit {
     unique_id: this.selectedIdentifierField,
     broker_template_no: this.selectedTemplateNumber,
   };
-
+  this.isvalidating=true;
   this.brokerService.validateUniqueIdentifier(payload).subscribe({
     next: (res: any) => {
       if (res.can_proceed) {
@@ -478,12 +487,14 @@ export class UpdateBrokerConfig implements OnInit {
         }
 
         this.identifierSet = true;
+        this.isvalidating=false;
         this.snackBar.open('Identifier added successfully!', 'Close', {
           panelClass: ['snack-success'],
           horizontalPosition: 'center',
           verticalPosition: 'top',
         });
       } else {
+        this.isvalidating=false;
         this.snackBar.open("Can't use this as unique identifier.", 'Close', {
           panelClass: ['snack-error'],
           horizontalPosition: 'center',
@@ -493,6 +504,7 @@ export class UpdateBrokerConfig implements OnInit {
     },
 
     error: (err) => {
+      this.isvalidating=false;
       if (err.status === 409) {
         this.snackBar.open(
           'Identifier already exists. Please choose another field.',
@@ -580,12 +592,14 @@ export class UpdateBrokerConfig implements OnInit {
 
 
   toggleEdit() {
-    this.backupFields = JSON.parse(JSON.stringify(this.responseData)); // deep copy
+    this.backupFields = JSON.parse(JSON.stringify(this.responseData)); 
     this.isEditing = true;
   }
 
   onSave() {
+    
     this.isEditing = false;
+
   }
 
   onFormReset() {
@@ -604,9 +618,10 @@ export class UpdateBrokerConfig implements OnInit {
     this.expandedCardIndex = -1;
   }
 
+  
   onEditReset() {
-    this.toggleEdit();
-    this.onAdd();
+     this.isEditing = false;
+     this.responseData = JSON.parse(JSON.stringify(this.backupFields));
   }
   
   toggleIdentifierMetadata() {

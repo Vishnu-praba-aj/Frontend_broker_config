@@ -308,7 +308,10 @@
       Set
     </button>
   </div>
-
+  <div *ngIf="isvalidating" class="loading-section">
+    <mat-icon class="loading-icon spin">autorenew</mat-icon>
+    <span class="loading-text">Validating unique id, please wait...</span>
+  </div>
   <!-- Validate Existing Identifier -->
   <div
     *ngIf="

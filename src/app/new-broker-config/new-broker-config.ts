@@ -70,6 +70,7 @@ export class NewBrokerConfig implements OnInit {
   isIdentifierExpanded: boolean = false;
   isEditingIdentifier: boolean = false;
   originalUniqueIdentifierField: Field | null = null;
+  isValidating:boolean=false;
 
   constructor(
     private fb: FormBuilder,
@@ -96,6 +97,10 @@ export class NewBrokerConfig implements OnInit {
 
   onBrokerChange(code: string) {
     this.selectedBrokerCode = code;
+    this.responseData = [];
+    this.isIdentifierExpanded = false;
+    this.uniqueIdentifierField=null;
+    this.identifierSet=false;
   }
 
   onFileSelected(event: Event) {
@@ -184,6 +189,7 @@ export class NewBrokerConfig implements OnInit {
         text: 'Now click Upload to proceed.',
       });
     } else {
+      this.promptHistory.push({ from: 'user', text: this.prompt });
       this.promptHistory.push({
         from: 'bot',
         text: 'Processing...',
@@ -202,7 +208,7 @@ export class NewBrokerConfig implements OnInit {
     const formData = new FormData();
     formData.append('session_id', sessionId);
     formData.append('prompt', prompt);
-    this.promptHistory.push({ from: 'user', text: this.prompt });
+    
 
     this.brokerService.continueChat(formData).subscribe({
       next: (response: any) => {
@@ -251,7 +257,7 @@ export class NewBrokerConfig implements OnInit {
     unique_id: this.newIdentifierFieldName,
     message: this.optionalPhrase || '',
   };
-
+  this.isValidating=true;
   this.brokerService.setUniqueIdentifier(payload).subscribe({
     next: (res: any) => {
       const allFields: Field[] = res.response.rows[0].fields;
@@ -275,6 +281,7 @@ export class NewBrokerConfig implements OnInit {
       );
 
       this.identifierSet = true;
+      this.isValidating=false;
       this.snackBar.open('Identifier added successfully!', 'Close', {
         panelClass: ['snack-success'],
         horizontalPosition: 'center',
@@ -283,6 +290,7 @@ export class NewBrokerConfig implements OnInit {
     },
 
     error: (err) => {
+      this.isValidating=false;
       if (err.status === 409) {
         this.snackBar.open(
           'Identifier already exists. Please choose another field.',
@@ -310,7 +318,7 @@ export class NewBrokerConfig implements OnInit {
     broker_code: this.selectedBrokerCode,
     unique_id: this.selectedIdentifierField,
   };
-
+  this.isValidating=true;
   this.brokerService.validateUniqueIdentifier(payload).subscribe({
     next: (res: any) => {
       if (res.can_proceed) {
@@ -333,12 +341,14 @@ export class NewBrokerConfig implements OnInit {
         }
 
         this.identifierSet = true;
+        this.isValidating=false;
         this.snackBar.open('Identifier added successfully!', 'Close', {
           panelClass: ['snack-success'],
           horizontalPosition: 'center',
           verticalPosition: 'top',
         });
       } else {
+        this.isValidating=false;
         this.snackBar.open("Can't use this as unique identifier.", 'Close', {
           panelClass: ['snack-error'],
           horizontalPosition: 'center',
@@ -348,6 +358,7 @@ export class NewBrokerConfig implements OnInit {
     },
 
     error: (err) => {
+      this.isValidating=false;
       if (err.status === 409) {
         this.snackBar.open(
           'Identifier already exists. Please choose another field.',
@@ -474,9 +485,10 @@ export class NewBrokerConfig implements OnInit {
   }
 
   onEditReset() {
-    this.toggleEdit();
-    this.onAdd();
+     this.isEditing = false;
+     this.responseData = JSON.parse(JSON.stringify(this.backupFields));
   }
+
   showError(message: string) {
     this.snackBar.open(message, 'Close', {
       panelClass: ['snack-error'],
