@@ -101,6 +101,12 @@ export class NewBrokerConfig implements OnInit {
     this.isIdentifierExpanded = false;
     this.uniqueIdentifierField=null;
     this.identifierSet=false;
+    this.promptHistory=[];
+    this.documentFile= null;
+    this.customFieldFile=null;
+    this.selectedFileName ='';
+    this.selectedFieldsFileName= '';
+
   }
 
   onFileSelected(event: Event) {
@@ -207,7 +213,7 @@ export class NewBrokerConfig implements OnInit {
   callFollowUpAPI(sessionId: string, prompt: string) {
     const formData = new FormData();
     formData.append('session_id', sessionId);
-    formData.append('prompt', prompt);
+    formData.append('prompt', "In the previous response "+prompt);
     
 
     this.brokerService.continueChat(formData).subscribe({
