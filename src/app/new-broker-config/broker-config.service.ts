@@ -3,6 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { mapMetadataKeys } from './metadata-mapper';
+import { throwError } from 'rxjs';
+
 
 @Injectable({
   providedIn: 'root',
@@ -10,37 +12,12 @@ import { mapMetadataKeys } from './metadata-mapper';
 
 export class BrokerConfigService {
   private baseUrl = 'http://localhost:8000/api'
-  private dummyBrokers = [
-    { broker_code: 'B001', broker_name: 'BNP' },
-    { broker_code: 'B002', broker_name: 'BNA' },
-  ];
-  private dummyFields = [
-      {
-        custom_field: 'field1',
-        document_label: 'Field 1',
-        value: 'Sample Value',
-        metadata: mapMetadataKeys({ confidence: 0.95, source: 'OCR' }),
-      },
-      {
-        custom_field: 'field2',
-        document_label: 'Field 2',
-        value: 'Sample Value',
-        metadata: mapMetadataKeys({ confidence: 0.88, source: 'Manual' }),
-      },
-      {
-        custom_field: 'unique_identifier',
-        document_label: 'Field 3',
-        value: 'Sample Value',
-        metadata: mapMetadataKeys({ confidence: 0.88, source: 'Manual' }),
-      },
-    ];
-
   constructor(private http: HttpClient) {}
 
   getBrokers(): Observable<any> {
     return this.http.get(`${this.baseUrl}/broker/config/brokers`).pipe(
       tap(res => console.log('Response [getBrokers]:', res)),
-      catchError(() => of({ broker: this.dummyBrokers }))
+      catchError((err) => {return throwError(() => err); })
     );
   }
 
@@ -72,12 +49,7 @@ export class BrokerConfigService {
       tap(mappedRes => console.log('Mapped Response [submitBrokerConfiguration]:', mappedRes)),
       catchError(err => {
         console.warn('Error [getTemplateData], using dummy:', err);
-        return of({
-          version_no: '1',
-          response: {
-            rows: [{ fields: this.dummyFields }],
-          },
-        });
+        return throwError(() => err); 
       })
     );
     
@@ -104,12 +76,7 @@ export class BrokerConfigService {
       tap(mappedRes => console.log('Mapped Response [setUniqueIdentifier]:', mappedRes)),
       catchError(err => {
         console.warn('Error [getTemplateData], using dummy:', err);
-        return of({
-          version_no: '1',
-          response: {
-            rows: [{ fields: this.dummyFields }],
-          },
-        });
+        return throwError(() => err); 
       })
     );
     
@@ -121,9 +88,7 @@ export class BrokerConfigService {
       tap(res => console.log('Response [validateUniqueIdentifier]:', res))
     ,catchError(err => {
         console.warn('Error [setuniqueidentifier], using dummy:', err);
-        return of({
-          can_proceed:true
-        });
+        return throwError(() => err); 
       }) );
   }
 
