@@ -159,6 +159,8 @@ export class NewBrokerConfig implements OnInit {
     this.responseData = [];
     this.uniqueIdentifierField = null;
     this.identifierSet=false;
+    this.promptHistory=[];
+    this.sessionId = '';
 
     const formData = new FormData();
     if (this.documentFile) formData.append('doc', this.documentFile);

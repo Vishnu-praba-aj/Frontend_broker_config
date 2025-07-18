@@ -75,7 +75,7 @@ export class BrokerConfigService {
       }),
       tap(mappedRes => console.log('Mapped Response [setUniqueIdentifier]:', mappedRes)),
       catchError(err => {
-        console.warn('Error [getTemplateData], using dummy:', err);
+        console.warn('Error', err);
         return throwError(() => err); 
       })
     );
@@ -87,7 +87,7 @@ export class BrokerConfigService {
     return this.http.post(`${this.baseUrl}/broker/config/unique_id_exists`, payload).pipe(
       tap(res => console.log('Response [validateUniqueIdentifier]:', res))
     ,catchError(err => {
-        console.warn('Error [setuniqueidentifier], using dummy:', err);
+        console.warn('Error', err);
         return throwError(() => err); 
       }) );
   }

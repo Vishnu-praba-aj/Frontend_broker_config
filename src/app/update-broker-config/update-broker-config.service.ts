@@ -17,7 +17,7 @@ export class BrokerConfigService {
     return this.http.get(`${this.baseUrl}/broker/config/brokers`).pipe(
       tap(res => console.log('Response [getBrokers]:', res)),
       catchError(err => {
-        console.warn('Error [getBrokers], using dummy:', err);
+        console.warn('Error', err);
         return throwError(() => err); 
       })
     );
@@ -28,7 +28,7 @@ export class BrokerConfigService {
     return this.http.get(`${this.baseUrl}/broker/config/template_info`, { params }).pipe(
       tap(res => console.log('Response [getTemplateCount]:', res)),
       catchError(err => {
-        console.warn('Error [getTemplateCount], using dummy count:', err);
+        console.warn('Error', err);
         return throwError(() => err); 
       })
     );
@@ -55,7 +55,7 @@ export class BrokerConfigService {
       })),
       tap(mappedRes => console.log('Mapped Response [getTemplateData]:', mappedRes)),
       catchError(err => {
-        console.warn('Error [getTemplateData], using dummy:', err);
+        console.warn('Error', err);
         return throwError(() => err); 
       })
     );
@@ -85,7 +85,7 @@ export class BrokerConfigService {
       })),
       tap(mappedRes => console.log('Mapped Response [submitBrokerConfiguration]:', mappedRes)),
     catchError(err => {
-        console.warn('Error [getTemplateData], using dummy:', err);
+        console.warn('Error', err);
         return throwError(() => err); 
       })
     );
@@ -119,7 +119,7 @@ export class BrokerConfigService {
     return this.http.post(`${this.baseUrl}/broker/config/unique_id_exists`, payload).pipe(
       tap(res => console.log('Response [validateUniqueIdentifier]:', res))
     ,catchError(err => {
-        console.warn('Error [setuniqueidentifier], using dummy:', err);
+        console.warn('Error', err);
         return throwError(() => err); 
       }) );
   }
